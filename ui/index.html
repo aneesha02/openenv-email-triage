@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Triage — OpenEnv</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0d0f12;
+    --surface:  #141720;
+    --border:   #242830;
+    --border2:  #2e3440;
+    --text:     #e0e4ed;
+    --muted:    #6b7588;
+    --accent:   #4af0a0;
+    --accent2:  #2dd4bf;
+    --warn:     #f59e0b;
+    --danger:   #f87171;
+    --info:     #60a5fa;
+    --mono:     'IBM Plex Mono', monospace;
+    --sans:     'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Layout ── */
+  .shell {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    grid-template-rows: 56px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 20px;
+  }
+  .logo {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo svg { width: 20px; height: 20px; }
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    border: 1px solid currentColor;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+  .badge.env { color: var(--accent); border-color: var(--accent); }
+
+  .topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .score-display {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .score-display span { color: var(--muted); }
+
+  /* ── Left panel: inbox ── */
+  .inbox-panel {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .count-badge {
+    background: var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 10px;
+  }
+  .inbox-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  .email-item {
+    padding: 10px 12px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    margin-bottom: 4px;
+    transition: all 0.15s;
+  }
+  .email-item:hover { background: var(--border); }
+  .email-item.active { border-color: var(--accent); background: rgba(74,240,160,0.06); }
+  .email-item.done { opacity: 0.4; }
+  .email-sender {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .email-subject {
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+  .email-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: flex;
+    gap: 6px;
+  }
+  .att-icon { color: var(--warn); }
+
+  /* ── Center: email viewer + triage form ── */
+  .main-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .email-viewer {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .email-header-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+  .email-subject-line {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .email-field {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  .email-field-label {
+    font-family: var(--mono);
+    color: var(--muted);
+    min-width: 60px;
+  }
+  .email-body {
+    font-size: 13px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+  }
+
+  /* ── Triage form ── */
+  .triage-form {
+    padding: 16px 24px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .form-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+  }
+  .form-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  select, textarea, input[type="text"] {
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  select:focus, textarea:focus { border-color: var(--accent); }
+  select { cursor: pointer; }
+  textarea {
+    resize: none;
+    height: 52px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .escalate-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .escalate-group input { width: 15px; height: 15px; cursor: pointer; }
+  .escalate-label { font-size: 12px; color: var(--text); }
+
+  .btn {
+    padding: 9px 20px;
+    border-radius: 4px;
+    border: none;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+  }
+  .btn-primary:hover { background: #3dd990; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text);
+  }
+  .btn-ghost:hover { border-color: var(--text); }
+
+  /* ── Right panel: activity log ── */
+  .log-panel {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .log-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .log-entry {
+    padding: 8px 10px;
+    border-radius: 3px;
+    margin-bottom: 4px;
+    border-left: 2px solid transparent;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  .log-entry.good  { border-left-color: var(--accent); background: rgba(74,240,160,0.05); }
+  .log-entry.ok    { border-left-color: var(--warn);   background: rgba(245,158,11,0.05); }
+  .log-entry.bad   { border-left-color: var(--danger); background: rgba(248,113,113,0.05); }
+  .log-score {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .log-id { color: var(--muted); }
+  .log-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+  .tag {
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-size: 9px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  .tag.priority-urgent { border-color: var(--danger); color: var(--danger); }
+  .tag.priority-high   { border-color: var(--warn);   color: var(--warn); }
+  .tag.priority-spam   { border-color: var(--muted);  color: var(--muted); }
+
+  /* ── Task selector ── */
+  .task-selector {
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 4px;
+  }
+  .task-btn {
+    flex: 1;
+    padding: 6px 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    text-align: center;
+    border-radius: 3px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    transition: all 0.15s;
+    letter-spacing: 0.06em;
+  }
+  .task-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(74,240,160,0.08); }
+  .task-btn:hover:not(.active) { border-color: var(--text); color: var(--text); }
+
+  /* ── Progress bar ── */
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    margin: 0 8px 8px;
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.4s ease;
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--muted);
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .empty-state svg { opacity: 0.3; }
+
+  /* ── Episode complete overlay ── */
+  .episode-complete {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,15,18,0.92);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .episode-complete.visible { display: flex; }
+  .complete-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 40px 48px;
+    text-align: center;
+    min-width: 360px;
+  }
+  .complete-score {
+    font-family: var(--mono);
+    font-size: 64px;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+    margin: 16px 0;
+  }
+  .complete-title { font-size: 18px; font-weight: 600; }
+  .complete-sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .complete-breakdown {
+    margin: 24px 0;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .breakdown-label { color: var(--muted); }
+  .breakdown-value { color: var(--text); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* ── API docs link ── */
+  .api-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    transition: all 0.15s;
+  }
+  .api-link:hover { color: var(--accent); border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="4" width="20" height="16" rx="2"/>
+        <polyline points="2,4 12,13 22,4"/>
+      </svg>
+      Email Triage
+    </div>
+    <span class="badge env">OpenEnv v1.0</span>
+    <span class="badge">email-triage-v1</span>
+    <div class="topbar-right">
+      <div class="score-display">
+        <span>Score </span><span id="cum-score">—</span>
+      </div>
+      <a href="/docs" target="_blank" class="api-link">API Docs ↗</a>
+    </div>
+  </header>
+
+  <!-- LEFT: INBOX -->
+  <aside class="inbox-panel">
+    <div class="task-selector">
+      <button class="task-btn active" onclick="selectTask('easy')">EASY</button>
+      <button class="task-btn" onclick="selectTask('medium')">MED</button>
+      <button class="task-btn" onclick="selectTask('hard')">HARD</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="panel-header">
+      Inbox <span class="count-badge" id="inbox-count">0</span>
+    </div>
+    <div class="inbox-list" id="inbox-list">
+      <div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <polyline points="2,4 12,13 22,4"/>
+        </svg>
+        Starting session…
+      </div>
+    </div>
+  </aside>
+
+  <!-- CENTER: EMAIL + FORM -->
+  <main class="main-panel">
+    <div class="email-viewer" id="email-viewer">
+      <div class="empty-state" style="height:100%">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <polyline points="2,4 12,13 22,4"/>
+        </svg>
+        Select an email from the inbox
+      </div>
+    </div>
+
+    <div class="triage-form" id="triage-form" style="display:none">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select id="f-priority">
+            <option value="urgent">🔴 Urgent</option>
+            <option value="high">🟠 High</option>
+            <option value="medium" selected>🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+            <option value="spam">🗑️ Spam</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select id="f-category">
+            <option value="customer_complaint">Customer Complaint</option>
+            <option value="billing_inquiry">Billing Inquiry</option>
+            <option value="technical_support">Technical Support</option>
+            <option value="sales_lead">Sales Lead</option>
+            <option value="internal_hr">Internal HR</option>
+            <option value="legal_compliance">Legal / Compliance</option>
+            <option value="spam_phishing">Spam / Phishing</option>
+            <option value="general_inquiry">General Inquiry</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Route To</label>
+          <select id="f-route">
+            <option value="support_tier1">Support Tier 1</option>
+            <option value="support_tier2">Support Tier 2</option>
+            <option value="billing">Billing</option>
+            <option value="sales">Sales</option>
+            <option value="legal">Legal</option>
+            <option value="hr">HR</option>
+            <option value="management">Management</option>
+            <option value="trash">Trash</option>
+            <option value="archive">Archive</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:3">
+          <label class="form-label">Summary <span style="color:var(--muted)">(<span id="char-count">0</span>/280)</span></label>
+          <textarea id="f-summary" placeholder="Brief triage summary of this email…" oninput="updateCharCount()"></textarea>
+        </div>
+        <label class="escalate-group">
+          <input type="checkbox" id="f-escalate">
+          <span class="escalate-label">🚨 Escalate to human</span>
+        </label>
+        <button class="btn btn-primary" id="submit-btn" onclick="submitTriage()">Submit Triage →</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT: ACTIVITY LOG -->
+  <aside class="log-panel">
+    <div class="panel-header">Activity Log</div>
+    <div class="log-list" id="log-list">
+      <div class="empty-state" style="padding:20px 0; text-align:center; color:var(--muted); font-size:11px">
+        No actions yet
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- EPISODE COMPLETE OVERLAY -->
+<div class="episode-complete" id="episode-complete">
+  <div class="complete-card">
+    <div class="complete-title">Episode Complete</div>
+    <div class="complete-score" id="final-score">—</div>
+    <div class="complete-sub" id="final-sub">overall score</div>
+    <div class="complete-breakdown" id="final-breakdown"></div>
+    <button class="btn btn-ghost" onclick="restartEpisode()" style="width:100%">↺ New Episode</button>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let sessionId = null;
+let currentTaskId = 'easy';
+let currentEmailId = null;
+let triageLog = [];
+let totalEmails = 0;
+let processedCount = 0;
+let cumulativeReward = 0;
+
+// ── Init ───────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => startSession('easy'));
+
+async function startSession(taskId) {
+  currentTaskId = taskId;
+  triageLog = [];
+  processedCount = 0;
+  cumulativeReward = 0;
+  currentEmailId = null;
+  document.getElementById('log-list').innerHTML = '<div class="empty-state" style="padding:20px 0; text-align:center; color:var(--muted); font-size:11px">No actions yet</div>';
+  document.getElementById('cum-score').textContent = '—';
+  document.getElementById('episode-complete').classList.remove('visible');
+
+  const res = await fetch('/reset', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({task_id: taskId, seed: null}),
+  });
+  const data = await res.json();
+  sessionId = data.session_id;
+  totalEmails = data.observation.total_emails;
+  renderObservation(data.observation);
+}
+
+function selectTask(taskId) {
+  document.querySelectorAll('.task-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['easy','medium','hard'][i] === taskId);
+  });
+  startSession(taskId);
+}
+
+// ── Render inbox ───────────────────────────────────────────────────────────
+function renderObservation(obs) {
+  totalEmails = obs.total_emails;
+  const processed = new Set(obs.processed);
+  const allEmails = [...obs.inbox, ...(obs.current_email ? [] : [])];
+  const inbox = obs.inbox;
+
+  document.getElementById('inbox-count').textContent = obs.remaining;
+  const pct = totalEmails > 0 ? ((totalEmails - obs.remaining) / totalEmails * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  const list = document.getElementById('inbox-list');
+  list.innerHTML = '';
+
+  if (inbox.length === 0) {
+    list.innerHTML = '<div class="empty-state" style="padding: 30px 0"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg><div>Inbox empty!</div></div>';
+    return;
+  }
+
+  inbox.forEach((email, i) => {
+    const h = email.header;
+    const isActive = i === 0;
+    const div = document.createElement('div');
+    div.className = `email-item${isActive ? ' active' : ''}`;
+    div.onclick = () => loadEmail(email);
+    div.innerHTML = `
+      <div class="email-sender">${escHtml(h.sender)}</div>
+      <div class="email-subject">${escHtml(h.subject)}</div>
+      <div class="email-meta">
+        <span>${formatTime(h.timestamp)}</span>
+        ${h.has_attachment ? '<span class="att-icon">📎</span>' : ''}
+      </div>`;
+    list.appendChild(div);
+    if (isActive) loadEmail(email);
+  });
+}
+
+function loadEmail(email) {
+  const h = email.header;
+  currentEmailId = h.email_id;
+
+  // Update active state in list
+  document.querySelectorAll('.email-item').forEach((el, i) => {
+    el.classList.remove('active');
+  });
+  event && event.currentTarget && event.currentTarget.classList.add('active');
+
+  const viewer = document.getElementById('email-viewer');
+  viewer.innerHTML = `
+    <div class="email-header-block">
+      <div class="email-subject-line">${escHtml(h.subject)}</div>
+      <div class="email-field"><span class="email-field-label">From</span> ${escHtml(h.sender)}</div>
+      <div class="email-field"><span class="email-field-label">Time</span> ${h.timestamp}</div>
+      <div class="email-field"><span class="email-field-label">ID</span> <code style="font-family:var(--mono);color:var(--accent2);font-size:11px">${h.email_id}</code></div>
+      ${h.has_attachment ? '<div class="email-field"><span class="email-field-label">📎</span> Has attachment</div>' : ''}
+    </div>
+    <div class="email-body">${escHtml(email.body)}</div>`;
+
+  document.getElementById('triage-form').style.display = 'flex';
+  document.getElementById('f-summary').value = '';
+  document.getElementById('f-escalate').checked = false;
+  document.getElementById('f-priority').value = 'medium';
+  document.getElementById('f-category').value = 'general_inquiry';
+  document.getElementById('f-route').value = 'support_tier1';
+  updateCharCount();
+}
+
+// ── Submit triage ──────────────────────────────────────────────────────────
+async function submitTriage() {
+  if (!currentEmailId || !sessionId) return;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  const action = {
+    email_id:    currentEmailId,
+    priority:    document.getElementById('f-priority').value,
+    category:    document.getElementById('f-category').value,
+    route_to:    document.getElementById('f-route').value,
+    summary:     document.getElementById('f-summary').value || `Triaged ${currentEmailId}`,
+    flag_review: document.getElementById('f-escalate').checked,
+    reasoning:   '',
+  };
+
+  try {
+    const res = await fetch('/step', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session_id: sessionId, action}),
+    });
+    const data = await res.json();
+    processedCount++;
+
+    // Update cumulative score
+    cumulativeReward += data.reward.total;
+    const avgScore = cumulativeReward / processedCount;
+    document.getElementById('cum-score').textContent = avgScore.toFixed(3);
+
+    // Log entry
+    addLogEntry(action, data.reward);
+
+    if (data.done) {
+      const summary = data.info?.episode_summary;
+      showEpisodeComplete(summary || {overall_score: avgScore});
+    } else {
+      renderObservation(data.observation);
+    }
+  } catch(e) {
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit Triage →';
+  }
+}
+
+function addLogEntry(action, reward) {
+  const score = reward.total;
+  const cls = score >= 0.8 ? 'good' : score >= 0.5 ? 'ok' : 'bad';
+  const list = document.getElementById('log-list');
+  if (list.querySelector('.empty-state')) list.innerHTML = '';
+
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${cls}`;
+  entry.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="log-id">${action.email_id}</span>
+      <span class="log-score">${score.toFixed(3)}</span>
+    </div>
+    <div class="log-tags">
+      <span class="tag priority-${action.priority}">${action.priority}</span>
+      <span class="tag">${action.category.replace('_',' ')}</span>
+      <span class="tag">${action.route_to}</span>
+      ${action.flag_review ? '<span class="tag" style="color:var(--danger);border-color:var(--danger)">escalated</span>' : ''}
+    </div>`;
+  list.insertBefore(entry, list.firstChild);
+}
+
+function showEpisodeComplete(summary) {
+  const score = summary.overall_score ?? 0;
+  document.getElementById('final-score').textContent = (score * 100).toFixed(1) + '%';
+  document.getElementById('final-sub').textContent =
+    `overall score — ${processedCount} emails triaged`;
+
+  const breakdown = document.getElementById('final-breakdown');
+  breakdown.innerHTML = `
+    <div class="breakdown-row"><span class="breakdown-label">Task</span><span class="breakdown-value">${currentTaskId.toUpperCase()}</span></div>
+    <div class="breakdown-row"><span class="breakdown-label">Emails</span><span class="breakdown-value">${summary.num_emails ?? processedCount}</span></div>
+    <div class="breakdown-row"><span class="breakdown-label">Best</span><span class="breakdown-value">${(summary.max_score ?? 0).toFixed(3)}</span></div>
+    <div class="breakdown-row"><span class="breakdown-label">Worst</span><span class="breakdown-value">${(summary.min_score ?? 0).toFixed(3)}</span></div>
+    <div class="breakdown-row"><span class="breakdown-label">Overall</span><span class="breakdown-value" style="color:var(--accent)">${score.toFixed(4)}</span></div>`;
+
+  document.getElementById('episode-complete').classList.add('visible');
+}
+
+function restartEpisode() {
+  startSession(currentTaskId);
+}
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+function updateCharCount() {
+  const v = document.getElementById('f-summary').value;
+  document.getElementById('char-count').textContent = v.length;
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatTime(iso) {
+  try {
+    return new Date(iso).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+  } catch { return iso; }
+}
+</script>
+</body>
+</html>

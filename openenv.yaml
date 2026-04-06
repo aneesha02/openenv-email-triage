@@ -1,0 +1,231 @@
+id: email-triage-v1
+name: Email Triage Environment
+version: "2.0.0"
+description: >
+  A real-world environment where an AI agent triages a corporate email inbox.
+  v2 adds genuine sequential state: escalation budgets, SLA decay timers, and
+  team queue capacities that persist across steps. Agent decisions about
+  processing ORDER, escalation RATIONING, and routing ADAPTATION all affect
+  future observations and rewards — making this a true sequential decision
+  problem, not just repeated classification.
+
+tags:
+  - openenv
+  - email
+  - triage
+  - nlp
+  - real-world
+  - classification
+  - routing
+  - sequential
+
+tasks:
+  - id: easy
+    name: Basic Email Triage
+    difficulty: easy
+    description: >
+      Triage 5 emails. Escalation budget=3 (2 truly required). Team queues
+      are generous. SLA windows are forgiving. A competent agent handles
+      processing order and budget without pressure.
+    n_emails: 5
+    escalation_budget: 3
+    expected_score_range: [0.75, 0.99]
+    grader: openenv_email_triage.grader.grade_episode
+
+  - id: medium
+    name: Mixed Inbox Triage
+    difficulty: medium
+    description: >
+      Triage 8 emails. Escalation budget=4 exactly matching true need — no
+      slack. legal and support_tier2 queues can saturate if misused. Two
+      urgent emails have tight SLA windows that breach if low-priority mail
+      is processed first.
+    n_emails: 8
+    escalation_budget: 4
+    expected_score_range: [0.50, 0.80]
+    grader: openenv_email_triage.grader.grade_episode
+
+  - id: hard
+    name: High-Stakes Inbox Triage
+    difficulty: hard
+    description: >
+      Triage 10 emails. 7 truly require escalation but budget=5 — agent must
+      choose which 5 matter most, accepting that 2 critical ones go without.
+      legal capacity=2, management=2; routing all legal emails to legal
+      saturates the queue mid-episode. 8 urgent emails with overlapping SLA
+      timers mean wrong processing order triggers cascade penalty.
+    n_emails: 10
+    escalation_budget: 5
+    expected_score_range: [0.35, 0.75]
+    grader: openenv_email_triage.grader.grade_episode
+
+observation_space:
+  type: object
+  description: Full inbox state + sequential session constraints at each step
+  fields:
+    inbox:
+      type: array
+      items: EmailMessage
+    current_email:
+      type: EmailMessage
+      nullable: true
+    processed:
+      type: array
+      items: string
+    step_number:
+      type: integer
+    total_emails:
+      type: integer
+    remaining:
+      type: integer
+    escalation_budget_remaining:
+      type: integer
+      description: Escalations left this episode; visible so agent can plan
+    team_queue_remaining:
+      type: object
+      description: Per-team capacity remaining (routes saturate mid-episode)
+    active_sla_warnings:
+      type: array
+      description: Emails approaching SLA deadline with steps_left count
+    sla_breaches_so_far:
+      type: integer
+    cascade_active:
+      type: boolean
+      description: True once 2+ urgent SLA breaches have fired
+
+action_space:
+  type: object
+  fields:
+    email_id:
+      type: string
+    priority:
+      type: string
+      enum: [urgent, high, medium, low, spam]
+    category:
+      type: string
+      enum:
+        - customer_complaint
+        - billing_inquiry
+        - technical_support
+        - sales_lead
+        - internal_hr
+        - legal_compliance
+        - spam_phishing
+        - general_inquiry
+    route_to:
+      type: string
+      enum:
+        - support_tier1
+        - support_tier2
+        - billing
+        - sales
+        - legal
+        - hr
+        - management
+        - trash
+        - archive
+    summary:
+      type: string
+      max_length: 280
+    flag_review:
+      type: boolean
+      description: Consumes one unit of escalation_budget
+    reasoning:
+      type: string
+      description: Not scored; chain-of-thought
+
+reward:
+  type: float
+  range: [-1.0, 1.0]
+  components:
+    label_score:
+      description: Weighted correctness of priority/category/route/summary/escalation
+      weight_breakdown:
+        priority: 0.35
+        category: 0.25
+        routing:  0.25
+        summary:  0.10
+        escalation: 0.05
+    sequential_penalties:
+      sla_breach:     -0.15  # per unprocessed email that misses its deadline
+      queue_overflow: -0.10  # routing to a saturated team
+      budget_overflow: -0.20 # escalating when budget exhausted
+      cascade:        -0.25  # one-time on 2nd urgent SLA breach
+    label_penalties:
+      spam_misrouted: -0.20
+      urgent_marked_spam: -0.30
+      invalid_email_id:   -0.10
+
+sequential_mechanics:
+  escalation_budget:
+    description: >
+      Fixed per-episode pool of flag_review=True uses. Exhausting the budget
+      causes subsequent escalations to be silently dropped and penalised.
+      Budget is always visible in the observation.
+    task_budgets: {easy: 3, medium: 4, hard: 5}
+    true_needs:   {easy: 2, medium: 4, hard: 7}
+
+  team_queue_capacity:
+    description: >
+      Each routing destination has finite capacity. Routing too many emails
+      to legal/support_tier2/management saturates the queue; the agent must
+      adapt subsequent routing to overflow destinations.
+    capacities:
+      support_tier1: 3
+      support_tier2: 2
+      billing: 3
+      sales: 3
+      legal: 2
+      hr: 2
+      management: 2
+
+  sla_timers:
+    description: >
+      Each email has a deadline relative to its position in the inbox.
+      SLA breach fires when an email remains unprocessed past its deadline.
+      Processing order is a first-class decision variable.
+    deadlines_in_steps:
+      urgent: 2
+      high:   4
+      medium: 8
+      low:    99
+
+  cascade:
+    description: >
+      Once 2 or more urgent emails breach SLA, a one-time cascade penalty
+      fires and cascade_active=True appears in all subsequent observations.
+
+baseline_scores:
+  naive_agent:
+    description: Keyword-only heuristic, no sequential awareness
+    easy:   0.4680
+    medium: 0.2563
+    hard:   0.1660
+  medium_skill_agent:
+    description: Correct labels, ignores SLA order and budget
+    easy:   0.9780
+    medium: 0.9475
+    hard:   0.8420
+  smart_agent:
+    description: Correct labels + SLA-aware ordering + budget rationing + queue adaptation
+    easy:   0.9860
+    medium: 0.9413
+    hard:   0.8720
+  score_fingerprint_sha256: "7d9d9e7fc953001507b2a16ceec6a62e5c11ff748b6f1b2ad1f09d3be5c4a6b8"
+  note: >
+    Scores are fully deterministic (no randomness). Run python validate.py
+    to reproduce and verify the SHA-256 fingerprint independently.
+
+environment:
+  python: ">=3.10"
+  entrypoint: openenv_email_triage.environment:EmailTriageEnv
+  reset: reset
+  step: step
+  state: state
+  version: "2.0.0"
+
+hf_space:
+  sdk: docker
+  tags:
+    - openenv
+    - email-triage

@@ -1,0 +1,3 @@
+[console_scripts]
+openenv-email-triage-baseline = baseline.run_baseline:main
+openenv-email-triage-server = server:main
