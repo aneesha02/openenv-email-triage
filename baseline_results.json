@@ -3,8 +3,8 @@
   "benchmark": "email-triage-v1",
   "tasks": {
     "easy": 0.896,
-    "medium": 0.9844,
+    "medium": 0.9819,
     "hard": 0.7475
   },
-  "overall": 0.876
+  "overall": 0.8751
 }

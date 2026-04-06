@@ -27,7 +27,10 @@ from openenv_email_triage.models import Priority, Category, RouteTo
 # ── Required env vars ─────────────────────────────────────────────────────────
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME   = os.getenv("MODEL_NAME",   "Qwen/Qwen2.5-72B-Instruct")
-HF_TOKEN     = os.getenv("HF_TOKEN",     "")
+HF_TOKEN = os.getenv("HF_TOKEN")
+
+if not HF_TOKEN:
+    raise ValueError("HF_TOKEN is not set")
 TASKS        = ["easy", "medium", "hard"]
 BENCHMARK    = "email-triage-v1"
 SUCCESS_THRESHOLD = 0.5   # score >= 0.5 counts as success
@@ -303,7 +306,7 @@ def run_task(client: Optional[OpenAI], task_id: str) -> float:
 
     except Exception as exc:
         error_msg = str(exc)
-        print(f"[DEBUG] Episode error: {exc}", flush=True)
+        print(f"[DEBUG] Episode error: {exc}", file=sys.stderr, flush=True)
 
     finally:
         log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
@@ -314,10 +317,7 @@ def run_task(client: Optional[OpenAI], task_id: str) -> float:
 def main() -> None:
     # Initialise OpenAI client (uses HF_TOKEN as api_key per hackathon spec)
     client: Optional[OpenAI] = None
-    if HF_TOKEN:
-        client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
-    else:
-        print("WARNING: HF_TOKEN not set — running rule-based demo mode.\n", flush=True)
+    client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
 
     all_scores: Dict[str, float] = {}
     for task_id in TASKS:
