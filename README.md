@@ -12,15 +12,13 @@ pinned: false
 
 # 📧 Email Triage OpenEnv
 
-This project implements an **LLM-powered email triage agent** for the OpenEnv Hackathon.
+This project implements an LLM-powered email triage agent for the OpenEnv Hackathon.
 
----
+## Overview
 
-## 🚀 Overview
+The system processes emails in the email-triage-v1 environment and outputs structured decisions per step.
 
-The system processes emails in the **email-triage-v1** environment and outputs structured decisions per step.
-
-Output format:
+## Output Format
 
 ```
 [START] task=<task_name> env=email-triage-v1 model=<model_name>
@@ -28,55 +26,19 @@ Output format:
 [END]   success=<true|false> steps=<n> score=<score> rewards=<r1,r2,...>
 ```
 
----
+## Environment Variables
 
-## 🧠 Model Configuration
+* API_BASE_URL=https://router.huggingface.co/v1
+* MODEL_NAME=Qwen/Qwen2.5-72B-Instruct
+* HF_TOKEN=your_token_here
 
-Environment variables:
+HF_TOKEN is required for execution.
 
-```
-API_BASE_URL=https://router.huggingface.co/v1
-MODEL_NAME=Qwen/Qwen2.5-72B-Instruct
-HF_TOKEN=<your_token>
-```
-
-> ⚠️ HF_TOKEN is required for execution.
-
----
-
-## 🐳 Docker Usage
+## Docker
 
 ```
 docker build -t email-triage-env .
 docker run -p 7860:7860 email-triage-env
 ```
 
-Access locally at:
-
-```
-http://localhost:7860
-```
-
----
-
-## 📂 Structure
-
-```
-inference.py
-Dockerfile
-README.md
-src/
-baseline_results.json
-```
-
----
-
-## ✅ Compliance
-
-* Uses OpenAI client (`chat.completions.create`)
-* Reads env vars via `os.getenv`
-* Enforces HF_TOKEN
-* Strict logging format
-* Works within 2 CPU / 8GB RAM constraints
-
----
+Open: http://localhost:7860
