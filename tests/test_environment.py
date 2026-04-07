@@ -5,7 +5,12 @@ sequential mechanics (SLA/budget/queue/cascade), and full episodes.
 
 Run: pytest tests/ -v
 """
+
 import pytest
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+
 from openenv_email_triage import (
     EmailTriageEnv, Action, Priority, Category, RouteTo
 )

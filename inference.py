@@ -27,7 +27,7 @@ from openenv_email_triage.models import Priority, Category, RouteTo
 # ── Required env vars ─────────────────────────────────────────────────────────
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME   = os.getenv("MODEL_NAME",   "Qwen/Qwen2.5-72B-Instruct")
-HF_TOKEN = os.getenv("HF_TOKEN")
+HF_TOKEN = os.getenv("HF_TOKEN") or os.getenv("OPENAI_API_KEY") or os.getenv("API_KEY")
 
 if not HF_TOKEN:
     raise ValueError("HF_TOKEN is not set")
@@ -52,7 +52,7 @@ def log_end(success: bool, steps: int, score: float, rewards: List[float]) -> No
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
     print(
         f"[END] success={str(success).lower()} steps={steps} "
-        f"score={score:.3f} rewards={rewards_str}",
+        f"score={score:.2f} rewards={rewards_str}",
         flush=True,
     )
 
@@ -189,10 +189,10 @@ def rule_based_action(obs: dict) -> Dict[str, Any]:
     elif any(w in subject for w in ["legal", "lawsuit", "compliance", "regulation", "gdpr", "breach notice"]):
         priority = "urgent"; category = "legal_compliance"
         route_to = "legal" if queues.get("legal", 0) > 0 else "management"
-        flag_review = budget > 0
+        flag_review = budget > 0 and priority in ["urgent", "high"]
     elif any(w in subject for w in ["hacked", "outage", "security", "ransomware", "incident"]):
         priority = "urgent"; category = "technical_support"; route_to = "support_tier2"
-        flag_review = budget > 0
+        flag_review = budget > 0 and priority in ["urgent", "high"]
     elif any(w in subject for w in ["invoice", "billing", "payment", "subscription", "overdue"]):
         priority = "high"; category = "billing_inquiry"; route_to = "billing"
     elif any(w in subject for w in ["enterprise", "sales", "pricing", "license", "acquisition"]):
@@ -200,7 +200,7 @@ def rule_based_action(obs: dict) -> Dict[str, Any]:
     elif any(w in subject for w in ["hr", "pip", "performance", "misconduct", "termination", "wages"]):
         priority = "high"; category = "internal_hr"
         route_to = "hr" if queues.get("hr", 0) > 0 else "management"
-        flag_review = budget > 0
+        flag_review = budget > 0 and priority in ["urgent", "high"]
 
     return {
         "email_id":    email_id,
@@ -313,9 +313,21 @@ def run_task(client: Optional[OpenAI], task_id: str) -> float:
 
     return score
 
+def run():
+    """
+    OpenEnv entrypoint (called by server)
+    """
+    client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
+
+    score = run_task(client, "easy")  # single task only
+
+    return {
+        "status": "success",
+        "score": score
+    }
 
 def main() -> None:
-    # Initialise OpenAI client (uses HF_TOKEN as api_key per hackathon spec)
+    
     client: Optional[OpenAI] = None
     client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
 

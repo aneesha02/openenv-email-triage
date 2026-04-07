@@ -16,9 +16,9 @@ RUN pip install --no-cache-dir -e ".[baseline]" 2>/dev/null || true
 # Copy source
 COPY src/ ./src/
 COPY baseline/ ./baseline/
-COPY server.py ./
+COPY server/ ./server/
 COPY openenv.yaml ./
-COPY ui/ ./ui/
+COPY inference.py ./
 
 # Install the package
 RUN pip install --no-cache-dir -e ".[baseline]"
@@ -32,7 +32,7 @@ USER appuser
 
 EXPOSE 7860
 
-ENV PYTHONPATH=/app/src
+ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
-CMD ["python", "-m", "uvicorn", "server:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]

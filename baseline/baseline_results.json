@@ -1,496 +1,191 @@
 {
-  "model": "rule-based-demo",
+  "version": "2.0.0",
   "seed": 42,
-  "task_scores": {
-    "easy": 0.916,
-    "medium": 0.7025,
-    "hard": 0.6965
-  },
-  "overall": 0.7716666666666666,
-  "details": {
-    "easy": {
-      "label_score": 0.916,
-      "num_emails": 5,
-      "per_email_scores": [
-        {
-          "email_id": "e001",
-          "gt_priority": "urgent",
-          "gt_category": "technical_support",
-          "gt_route": "support_tier2",
-          "gt_escalate": true,
-          "pred_priority": "urgent",
-          "pred_category": "technical_support",
-          "pred_route": "support_tier2",
-          "pred_escalate": true,
-          "scores": {
-            "priority": 1.0,
-            "category": 1.0,
-            "routing": 1.0,
-            "summary": 0.8,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.98
-        },
-        {
-          "email_id": "e002",
-          "gt_priority": "spam",
-          "gt_category": "spam_phishing",
-          "gt_route": "trash",
-          "gt_escalate": false,
-          "pred_priority": "spam",
-          "pred_category": "spam_phishing",
-          "pred_route": "trash",
-          "pred_escalate": false,
-          "scores": {
-            "priority": 1.0,
-            "category": 1.0,
-            "routing": 1.0,
-            "summary": 0.7,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.97
-        },
-        {
-          "email_id": "e003",
-          "gt_priority": "low",
-          "gt_category": "internal_hr",
-          "gt_route": "hr",
-          "gt_escalate": false,
-          "pred_priority": "medium",
-          "pred_category": "internal_hr",
-          "pred_route": "hr",
-          "pred_escalate": false,
-          "scores": {
-            "priority": 0.5,
-            "category": 1.0,
-            "routing": 1.0,
-            "summary": 0.8,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.805
-        },
-        {
-          "email_id": "e004",
-          "gt_priority": "high",
-          "gt_category": "billing_inquiry",
-          "gt_route": "billing",
-          "gt_escalate": false,
-          "pred_priority": "medium",
-          "pred_category": "billing_inquiry",
-          "pred_route": "billing",
-          "pred_escalate": false,
-          "scores": {
-            "priority": 0.5,
-            "category": 1.0,
-            "routing": 1.0,
-            "summary": 1.0,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.825
-        },
-        {
-          "email_id": "e005",
-          "gt_priority": "high",
-          "gt_category": "sales_lead",
-          "gt_route": "sales",
-          "gt_escalate": false,
-          "pred_priority": "high",
-          "pred_category": "sales_lead",
-          "pred_route": "sales",
-          "pred_escalate": false,
-          "scores": {
-            "priority": 1.0,
-            "category": 1.0,
-            "routing": 1.0,
-            "summary": 1.0,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 1.0
-        }
-      ],
-      "min_score": 0.805,
-      "max_score": 1.0
+  "description": "Three-agent \u00d7 three-task score matrix. Scores are fully deterministic (no randomness in dataset or grader). SHA-256 fingerprint below allows independent verification without running a live model.",
+  "agents": {
+    "naive": {
+      "easy": {
+        "avg_reward": 0.468,
+        "min_step": 0.115,
+        "max_step": 0.9,
+        "sla_breaches": 0,
+        "queue_overflows": 0,
+        "budget_used": 0,
+        "budget_total": 3,
+        "cascade": false,
+        "step_rewards": [
+          0.13,
+          0.9,
+          0.43,
+          0.765,
+          0.115
+        ]
+      },
+      "medium": {
+        "avg_reward": 0.2563,
+        "min_step": -0.235,
+        "max_step": 0.93,
+        "sla_breaches": 0,
+        "queue_overflows": 3,
+        "budget_used": 0,
+        "budget_total": 4,
+        "cascade": true,
+        "step_rewards": [
+          0.03,
+          0.03,
+          0.415,
+          -0.235,
+          0.9,
+          0.015,
+          0.93,
+          -0.035
+        ]
+      },
+      "hard": {
+        "avg_reward": 0.166,
+        "min_step": -0.22,
+        "max_step": 0.85,
+        "sla_breaches": 0,
+        "queue_overflows": 3,
+        "budget_used": 0,
+        "budget_total": 5,
+        "cascade": true,
+        "step_rewards": [
+          0.03,
+          0.065,
+          0.03,
+          -0.22,
+          0.765,
+          -0.07,
+          0.85,
+          0.065,
+          -0.07,
+          0.215
+        ]
+      }
     },
-    "medium": {
-      "label_score": 0.7025,
-      "num_emails": 8,
-      "per_email_scores": [
-        {
-          "email_id": "m001",
-          "gt_priority": "urgent",
-          "gt_category": "customer_complaint",
-          "gt_route": "management",
-          "gt_escalate": true,
-          "pred_priority": "urgent",
-          "pred_category": "legal_compliance",
-          "pred_route": "management",
-          "pred_escalate": true,
-          "scores": {
-            "priority": 1.0,
-            "category": 0.2,
-            "routing": 1.0,
-            "summary": 0.7,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.77
-        },
-        {
-          "email_id": "m002",
-          "gt_priority": "urgent",
-          "gt_category": "legal_compliance",
-          "gt_route": "legal",
-          "gt_escalate": true,
-          "pred_priority": "urgent",
-          "pred_category": "legal_compliance",
-          "pred_route": "management",
-          "pred_escalate": true,
-          "scores": {
-            "priority": 1.0,
-            "category": 1.0,
-            "routing": 0.4,
-            "summary": 0.8,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.83
-        },
-        {
-          "email_id": "m003",
-          "gt_priority": "urgent",
-          "gt_category": "technical_support",
-          "gt_route": "support_tier2",
-          "gt_escalate": true,
-          "pred_priority": "medium",
-          "pred_category": "internal_hr",
-          "pred_route": "hr",
-          "pred_escalate": false,
-          "scores": {
-            "priority": 0.1,
-            "category": 0.0,
-            "routing": 0.0,
-            "summary": 0.8,
-            "escalation": 0.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.115
-        },
-        {
-          "email_id": "m004",
-          "gt_priority": "high",
-          "gt_category": "internal_hr",
-          "gt_route": "hr",
-          "gt_escalate": false,
-          "pred_priority": "high",
-          "pred_category": "legal_compliance",
-          "pred_route": "legal",
-          "pred_escalate": true,
-          "scores": {
-            "priority": 1.0,
-            "category": 0.2,
-            "routing": 0.0,
-            "summary": 1.0,
-            "escalation": 0.5,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.525
-        },
-        {
-          "email_id": "m005",
-          "gt_priority": "spam",
-          "gt_category": "spam_phishing",
-          "gt_route": "trash",
-          "gt_escalate": false,
-          "pred_priority": "spam",
-          "pred_category": "spam_phishing",
-          "pred_route": "trash",
-          "pred_escalate": false,
-          "scores": {
-            "priority": 1.0,
-            "category": 1.0,
-            "routing": 1.0,
-            "summary": 1.0,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 1.0
-        },
-        {
-          "email_id": "m006",
-          "gt_priority": "high",
-          "gt_category": "sales_lead",
-          "gt_route": "sales",
-          "gt_escalate": false,
-          "pred_priority": "high",
-          "pred_category": "sales_lead",
-          "pred_route": "sales",
-          "pred_escalate": false,
-          "scores": {
-            "priority": 1.0,
-            "category": 1.0,
-            "routing": 1.0,
-            "summary": 0.8,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.98
-        },
-        {
-          "email_id": "m007",
-          "gt_priority": "medium",
-          "gt_category": "billing_inquiry",
-          "gt_route": "billing",
-          "gt_escalate": false,
-          "pred_priority": "medium",
-          "pred_category": "billing_inquiry",
-          "pred_route": "billing",
-          "pred_escalate": false,
-          "scores": {
-            "priority": 1.0,
-            "category": 1.0,
-            "routing": 1.0,
-            "summary": 0.7,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.97
-        },
-        {
-          "email_id": "m008",
-          "gt_priority": "high",
-          "gt_category": "internal_hr",
-          "gt_route": "hr",
-          "gt_escalate": true,
-          "pred_priority": "high",
-          "pred_category": "sales_lead",
-          "pred_route": "sales",
-          "pred_escalate": false,
-          "scores": {
-            "priority": 1.0,
-            "category": 0.0,
-            "routing": 0.0,
-            "summary": 0.8,
-            "escalation": 0.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.43
-        }
-      ],
-      "min_score": 0.115,
-      "max_score": 1.0
+    "medium_skill": {
+      "easy": {
+        "avg_reward": 0.978,
+        "min_step": 0.94,
+        "max_step": 1.0,
+        "sla_breaches": 0,
+        "queue_overflows": 0,
+        "budget_used": 1,
+        "budget_total": 3,
+        "cascade": false,
+        "step_rewards": [
+          0.98,
+          0.97,
+          0.94,
+          1.0,
+          1.0
+        ]
+      },
+      "medium": {
+        "avg_reward": 0.9475,
+        "min_step": 0.75,
+        "max_step": 0.98,
+        "sla_breaches": 0,
+        "queue_overflows": 0,
+        "budget_used": 4,
+        "budget_total": 4,
+        "cascade": true,
+        "step_rewards": [
+          0.97,
+          0.97,
+          0.98,
+          0.75,
+          0.98,
+          0.98,
+          0.97,
+          0.98
+        ]
+      },
+      "hard": {
+        "avg_reward": 0.842,
+        "min_step": 0.67,
+        "max_step": 1.0,
+        "sla_breaches": 0,
+        "queue_overflows": 4,
+        "budget_used": 5,
+        "budget_total": 5,
+        "cascade": true,
+        "step_rewards": [
+          0.98,
+          0.98,
+          1.0,
+          0.73,
+          1.0,
+          0.88,
+          0.8,
+          0.67,
+          0.68,
+          0.7
+        ]
+      }
     },
-    "hard": {
-      "label_score": 0.6965,
-      "num_emails": 10,
-      "per_email_scores": [
-        {
-          "email_id": "h001",
-          "gt_priority": "urgent",
-          "gt_category": "legal_compliance",
-          "gt_route": "legal",
-          "gt_escalate": true,
-          "pred_priority": "urgent",
-          "pred_category": "legal_compliance",
-          "pred_route": "management",
-          "pred_escalate": true,
-          "scores": {
-            "priority": 1.0,
-            "category": 1.0,
-            "routing": 0.4,
-            "summary": 0.8,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.83
-        },
-        {
-          "email_id": "h002",
-          "gt_priority": "urgent",
-          "gt_category": "legal_compliance",
-          "gt_route": "legal",
-          "gt_escalate": false,
-          "pred_priority": "high",
-          "pred_category": "legal_compliance",
-          "pred_route": "legal",
-          "pred_escalate": true,
-          "scores": {
-            "priority": 0.5,
-            "category": 1.0,
-            "routing": 1.0,
-            "summary": 1.0,
-            "escalation": 0.5,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.8
-        },
-        {
-          "email_id": "h003",
-          "gt_priority": "urgent",
-          "gt_category": "technical_support",
-          "gt_route": "management",
-          "gt_escalate": true,
-          "pred_priority": "high",
-          "pred_category": "billing_inquiry",
-          "pred_route": "billing",
-          "pred_escalate": false,
-          "scores": {
-            "priority": 0.5,
-            "category": 0.0,
-            "routing": 0.0,
-            "summary": 1.0,
-            "escalation": 0.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.275
-        },
-        {
-          "email_id": "h004",
-          "gt_priority": "urgent",
-          "gt_category": "legal_compliance",
-          "gt_route": "management",
-          "gt_escalate": true,
-          "pred_priority": "high",
-          "pred_category": "legal_compliance",
-          "pred_route": "legal",
-          "pred_escalate": true,
-          "scores": {
-            "priority": 0.5,
-            "category": 1.0,
-            "routing": 0.4,
-            "summary": 0.8,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.655
-        },
-        {
-          "email_id": "h005",
-          "gt_priority": "high",
-          "gt_category": "billing_inquiry",
-          "gt_route": "billing",
-          "gt_escalate": false,
-          "pred_priority": "medium",
-          "pred_category": "billing_inquiry",
-          "pred_route": "billing",
-          "pred_escalate": false,
-          "scores": {
-            "priority": 0.5,
-            "category": 1.0,
-            "routing": 1.0,
-            "summary": 1.0,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.825
-        },
-        {
-          "email_id": "h006",
-          "gt_priority": "urgent",
-          "gt_category": "legal_compliance",
-          "gt_route": "legal",
-          "gt_escalate": true,
-          "pred_priority": "urgent",
-          "pred_category": "legal_compliance",
-          "pred_route": "management",
-          "pred_escalate": true,
-          "scores": {
-            "priority": 1.0,
-            "category": 1.0,
-            "routing": 0.4,
-            "summary": 0.8,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.83
-        },
-        {
-          "email_id": "h007",
-          "gt_priority": "spam",
-          "gt_category": "spam_phishing",
-          "gt_route": "trash",
-          "gt_escalate": true,
-          "pred_priority": "spam",
-          "pred_category": "spam_phishing",
-          "pred_route": "trash",
-          "pred_escalate": false,
-          "scores": {
-            "priority": 1.0,
-            "category": 1.0,
-            "routing": 1.0,
-            "summary": 1.0,
-            "escalation": 0.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.95
-        },
-        {
-          "email_id": "h008",
-          "gt_priority": "urgent",
-          "gt_category": "legal_compliance",
-          "gt_route": "legal",
-          "gt_escalate": true,
-          "pred_priority": "high",
-          "pred_category": "legal_compliance",
-          "pred_route": "legal",
-          "pred_escalate": true,
-          "scores": {
-            "priority": 0.5,
-            "category": 1.0,
-            "routing": 1.0,
-            "summary": 0.7,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.795
-        },
-        {
-          "email_id": "h009",
-          "gt_priority": "urgent",
-          "gt_category": "legal_compliance",
-          "gt_route": "management",
-          "gt_escalate": true,
-          "pred_priority": "high",
-          "pred_category": "sales_lead",
-          "pred_route": "sales",
-          "pred_escalate": false,
-          "scores": {
-            "priority": 0.5,
-            "category": 0.0,
-            "routing": 0.0,
-            "summary": 0.8,
-            "escalation": 0.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.255
-        },
-        {
-          "email_id": "h010",
-          "gt_priority": "urgent",
-          "gt_category": "technical_support",
-          "gt_route": "management",
-          "gt_escalate": true,
-          "pred_priority": "urgent",
-          "pred_category": "legal_compliance",
-          "pred_route": "management",
-          "pred_escalate": true,
-          "scores": {
-            "priority": 1.0,
-            "category": 0.0,
-            "routing": 1.0,
-            "summary": 1.0,
-            "escalation": 1.0,
-            "base_penalty": 0.0
-          },
-          "label_total": 0.75
-        }
-      ],
-      "min_score": 0.255,
-      "max_score": 0.95
+    "smart": {
+      "easy": {
+        "avg_reward": 0.986,
+        "min_step": 0.97,
+        "max_step": 1.0,
+        "sla_breaches": 0,
+        "queue_overflows": 0,
+        "budget_used": 1,
+        "budget_total": 3,
+        "cascade": false,
+        "step_rewards": [
+          0.98,
+          0.97,
+          0.98,
+          1.0,
+          1.0
+        ]
+      },
+      "medium": {
+        "avg_reward": 0.9413,
+        "min_step": 0.75,
+        "max_step": 0.98,
+        "sla_breaches": 0,
+        "queue_overflows": 0,
+        "budget_used": 3,
+        "budget_total": 4,
+        "cascade": true,
+        "step_rewards": [
+          0.97,
+          0.97,
+          0.98,
+          0.75,
+          0.98,
+          0.98,
+          0.97,
+          0.93
+        ]
+      },
+      "hard": {
+        "avg_reward": 0.872,
+        "min_step": 0.67,
+        "max_step": 1.0,
+        "sla_breaches": 0,
+        "queue_overflows": 4,
+        "budget_used": 5,
+        "budget_total": 5,
+        "cascade": true,
+        "step_rewards": [
+          0.98,
+          0.98,
+          1.0,
+          0.73,
+          1.0,
+          0.73,
+          0.95,
+          0.67,
+          0.83,
+          0.85
+        ]
+      }
     }
-  }
+  },
+  "score_fingerprint_sha256": "7d9d9e7fc953001507b2a16ceec6a62e6859833b3ac2712a9630e86b29dc3492"
 }

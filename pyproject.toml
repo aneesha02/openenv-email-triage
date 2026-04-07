@@ -1,56 +1,17 @@
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta:__legacy__"
-
 [project]
 name = "openenv-email-triage"
-version = "1.0.0"
-description = "OpenEnv-compliant email triage environment for AI agent training"
-readme = "README.md"
-license = { text = "MIT" }
-requires-python = ">=3.10"
-authors = [{ name = "OpenEnv Email Triage" }]
-keywords = ["openenv", "reinforcement-learning", "llm-agent", "email", "nlp"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-]
-
+version = "0.1.0"
 dependencies = [
-    "pydantic>=2.5",
-    "fastapi>=0.109",
-    "uvicorn[standard]>=0.27",
-    "python-multipart>=0.0.9",
-]
-
-[project.optional-dependencies]
-baseline = [
-    "openai>=1.10",
-]
-dev = [
-    "pytest>=8.0",
-    "pytest-asyncio>=0.23",
-    "httpx>=0.26",
-    "openai>=1.10",
-    "ruff>=0.2",
+    "openenv-core>=0.2.0",
+    "fastapi",
+    "uvicorn",
+    "openai"
 ]
 
 [project.scripts]
-openenv-email-triage-server = "server:main"
-openenv-email-triage-baseline = "baseline.run_baseline:main"
+server = "server.app:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = ["server*"]
 
-[tool.ruff]
-line-length = 100
-target-version = "py310"
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-asyncio_mode = "auto"

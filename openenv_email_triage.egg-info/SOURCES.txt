@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+openenv_email_triage.egg-info/PKG-INFO
+openenv_email_triage.egg-info/SOURCES.txt
+openenv_email_triage.egg-info/dependency_links.txt
+openenv_email_triage.egg-info/entry_points.txt
+openenv_email_triage.egg-info/requires.txt
+openenv_email_triage.egg-info/top_level.txt
+server/__init__.py
+server/app.py
+tests/test_environment.py
