@@ -294,8 +294,12 @@ def run_task(client: Optional[OpenAI], task_id: str) -> float:
                 f"cat={action.category.value},route={action.route_to.value},"
                 f"flag={action.flag_review}}}"
             )
+            env_error = None
+            if isinstance(info, dict):
+                env_error = info.get("last_action_error") or info.get("error")
+
             log_step(step=step, action=action_str, reward=reward,
-                     done=done, error=error_msg)
+                    done=done, error=env_error)
 
         # Compute final score from grader
         from openenv_email_triage.grader import grade_episode
@@ -309,6 +313,12 @@ def run_task(client: Optional[OpenAI], task_id: str) -> float:
         print(f"[DEBUG] Episode error: {exc}", file=sys.stderr, flush=True)
 
     finally:
+        try:
+            close_fn = getattr(env, "close", None)
+            if callable(close_fn):
+                close_fn()
+        except Exception as e:
+            print(f"[DEBUG] env.close() error: {e}", file=sys.stderr, flush=True)
         log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
 
     return score
