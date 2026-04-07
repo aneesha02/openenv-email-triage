@@ -6,7 +6,7 @@ colorTo: indigo
 sdk: docker
 app_port: 7860
 pinned: false
-short_description: OpenEnv email triage benchmark with sequential decision-making
+short_description: OpenEnv email triage benchmark
 tags:
   - openenv
   - agents
