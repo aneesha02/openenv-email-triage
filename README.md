@@ -121,11 +121,6 @@ Rewards are designed to produce a meaningful trajectory signal in the range `[-1
 [END]   success=<true|false> steps=<n> score=<score> rewards=<r1,r2,...>
 ```
 
-## Environment Variables
-
-* API_BASE_URL=https://router.huggingface.co/v1
-* MODEL_NAME=Qwen/Qwen2.5-72B-Instruct
-* HF_TOKEN=your_token_here
 
 ## Set environment variables
 Windows (PowerShell)
@@ -139,13 +134,9 @@ uv lock
 ## Run the server
 uv run server
 
-Server starts at:
-
-http://localhost:7860
 
 ## Test the API
 
-⚠️ Use POST, not GET:
 
 curl -X POST http://localhost:7860/run \
   -H "Content-Type: application/json" \
