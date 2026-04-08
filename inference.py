@@ -301,7 +301,7 @@ def run_task(client: Optional[OpenAI], task_id: str) -> float:
                     done=done, error=env_error)
 
         # Compute final score from grader
-        from openenv_email_triage.grader import grade_episode
+        from grader import grade_episode
         grader_result = grade_episode(env._actions_log)
         score = grader_result.get("label_score", 0.0)
         score = min(max(score, 0.0), 1.0)

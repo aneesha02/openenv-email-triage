@@ -16,7 +16,7 @@ class Action(BaseModel):
 @app.post("/reset")
 def reset(task: str = "easy"):
     global env
-    env = EmailTriageEnv(task=task)
+    env = EmailTriageEnv(task_id=task)
     obs = env.reset()
     return obs
 

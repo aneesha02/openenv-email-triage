@@ -30,7 +30,7 @@ tasks:
     n_emails: 5
     escalation_budget: 3
     expected_score_range: [0.75, 0.99]
-    grader: openenv_email_triage.grader.grade_episode
+    grader: grader.grade_episode
 
   - id: medium
     name: Mixed Inbox Triage
@@ -43,7 +43,7 @@ tasks:
     n_emails: 8
     escalation_budget: 4
     expected_score_range: [0.50, 0.80]
-    grader: openenv_email_triage.grader.grade_episode
+    grader: grader.grade_episode
 
   - id: hard
     name: High-Stakes Inbox Triage
@@ -57,7 +57,7 @@ tasks:
     n_emails: 10
     escalation_budget: 5
     expected_score_range: [0.35, 0.75]
-    grader: openenv_email_triage.grader.grade_episode
+    grader: grader.grade_episode
 
 observation_space:
   type: object
@@ -218,7 +218,7 @@ baseline_scores:
 
 environment:
   python: ">=3.10"
-  entrypoint: openenv_email_triage.environment:EmailTriageEnv
+  entrypoint: environment:EmailTriageEnv
   reset: reset
   step: step
   state: state
