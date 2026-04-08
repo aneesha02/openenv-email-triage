@@ -14,11 +14,7 @@ COPY pyproject.toml ./
 RUN pip install --no-cache-dir -e ".[baseline]" 2>/dev/null || true
 
 # Copy source
-COPY src/ ./src/
-COPY baseline/ ./baseline/
-COPY server/ ./server/
-COPY openenv.yaml ./
-COPY inference.py ./
+COPY . .
 
 # Install the package
 RUN pip install --no-cache-dir -e ".[baseline]"

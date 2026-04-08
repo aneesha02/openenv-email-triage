@@ -7,19 +7,17 @@ Run: pytest tests/ -v
 """
 
 import pytest
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from openenv_email_triage import (
-    EmailTriageEnv, Action, Priority, Category, RouteTo
-)
-from openenv_email_triage.grader import score_action, grade_episode
-from openenv_email_triage.models import (
+
+from environment import EmailTriageEnv
+
+from grader import score_action, grade_episode
+from models import (
+    Action, Priority, Category, RouteTo,
     Observation, Reward, EnvironmentState,
     TEAM_CAPACITY, SLA_STEPS, TASK_ESCALATION_BUDGET,
 )
-from openenv_email_triage.dataset import EASY_EMAILS, MEDIUM_EMAILS, HARD_EMAILS
+from dataset import EASY_EMAILS, MEDIUM_EMAILS, HARD_EMAILS
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -349,7 +347,7 @@ def test_oracle_episode_completes(task_id):
 @pytest.mark.parametrize("task_id", ["easy","medium","hard"])
 def test_oracle_label_scores_above_floor(task_id):
     """Oracle label scores should be high (before sequential penalties)."""
-    from openenv_email_triage.grader import grade_episode
+    from grader import grade_episode
     datasets = {"easy": EASY_EMAILS, "medium": MEDIUM_EMAILS, "hard": HARD_EMAILS}
     env = EmailTriageEnv(task_id=task_id); env.reset()
     actions = []

@@ -120,7 +120,16 @@ Rewards are designed to produce a meaningful trajectory signal in the range `[-1
 [STEP]  step=<n> action=<action> reward=<0.00> done=<true|false> error=<msg|null>
 [END]   success=<true|false> steps=<n> score=<score> rewards=<r1,r2,...>
 ```
+## Environment Variables
 
+You must set the following:
+
+- HF_TOKEN: Hugging Face API token
+
+### Local run
+```bash
+export HF_TOKEN=your_token_here
+uv run server
 
 ## Set environment variables
 Windows (PowerShell)
@@ -151,3 +160,7 @@ openenv validate
 docker build -t email-triage-env .
 docker run -p 7860:7860 -e HF_TOKEN=$env:HF_TOKEN email-triage-env
 ```
+
+## Accessing the app
+
+- Local: http://127.0.0.1:7860

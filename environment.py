@@ -34,14 +34,14 @@ from __future__ import annotations
 import copy
 from typing import Any, Dict, List, Optional, Tuple
 
-from .models import (
+from models import (
     Action, EmailMessage, EmailHeader, EnvironmentState,
     Observation, Reward, RewardBreakdown,
     SessionConstraints, SlaStatus,
     TEAM_CAPACITY, SLA_STEPS,
 )
-from .dataset import EASY_EMAILS, MEDIUM_EMAILS, HARD_EMAILS
-from .grader import score_action, grade_episode
+from dataset import EASY_EMAILS, MEDIUM_EMAILS, HARD_EMAILS
+from grader import score_action, grade_episode
 
 TASK_DATASETS: Dict[str, List[Dict[str, Any]]] = {
     "easy":   EASY_EMAILS,
@@ -318,7 +318,7 @@ class EmailTriageEnv:
                     "overdue":     steps_left < 0,
                 })
 
-        from .models import Priority, Category, RouteTo
+        from models import Priority, Category, RouteTo
         queue_dict = {
             k: c.team_queues.remaining(k)
             for k in TEAM_CAPACITY

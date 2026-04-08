@@ -28,6 +28,14 @@ def run_endpoint():
             "message": str(e)
         }
 
+@app.get("/")
+def home():
+    return {
+        "name": "Email Triage OpenEnv",
+        "status": "running",
+        "endpoint": "/run",
+        "usage": "POST with {task: easy|medium|hard}"
+    }
 
 def main():
     """

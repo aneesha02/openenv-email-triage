@@ -19,18 +19,17 @@ from typing import Any, Dict, List, Optional
 from openai import OpenAI
 
 # ── Add src to path so we can import the environment ──────────────────────────
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from openenv_email_triage import EmailTriageEnv, Action
-from openenv_email_triage.models import Priority, Category, RouteTo
+
+from environment import EmailTriageEnv
+from models import Priority, Category, RouteTo, Action
 
 # ── Required env vars ─────────────────────────────────────────────────────────
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME   = os.getenv("MODEL_NAME",   "Qwen/Qwen2.5-72B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN") or os.getenv("OPENAI_API_KEY") or os.getenv("API_KEY")
 
-if not HF_TOKEN:
-    raise ValueError("HF_TOKEN is not set")
+
 TASKS        = ["easy", "medium", "hard"]
 BENCHMARK    = "email-triage-v1"
 SUCCESS_THRESHOLD = 0.5   # score >= 0.5 counts as success
@@ -337,7 +336,8 @@ def run():
     }
 
 def main() -> None:
-    
+    if not HF_TOKEN:
+        raise ValueError("HF_TOKEN is not set")
     client: Optional[OpenAI] = None
     client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
 

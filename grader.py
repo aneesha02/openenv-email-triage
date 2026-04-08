@@ -12,8 +12,8 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, List, Tuple
 
-from .models import Action, Priority, RouteTo, RewardBreakdown, Reward
-from .dataset import ALL_EMAILS_BY_ID
+from models import Action, Priority, RouteTo, RewardBreakdown, Reward
+from dataset import ALL_EMAILS_BY_ID
 
 PRIORITY_WEIGHT   = 0.35
 CATEGORY_WEIGHT   = 0.25

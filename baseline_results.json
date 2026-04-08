@@ -2,9 +2,9 @@
   "model": "Qwen/Qwen2.5-72B-Instruct",
   "benchmark": "email-triage-v1",
   "tasks": {
-    "easy": 0.887,
-    "medium": 0.9769,
-    "hard": 0.3715
+    "easy": 0.0,
+    "medium": 0.0,
+    "hard": 0.0
   },
-  "overall": 0.7451
+  "overall": 0.0
 }

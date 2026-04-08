@@ -15,3 +15,5 @@ server = "server.app:main"
 where = ["."]
 include = ["server*"]
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
