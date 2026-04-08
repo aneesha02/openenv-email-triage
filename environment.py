@@ -109,34 +109,58 @@ class EmailTriageEnv:
         self._step_num:       int                   = 0
         self._done:           bool                  = False
         self._cumulative_reward: float              = 0.0
-        self._constraints:    SessionConstraints    = SessionConstraints()
+        self._constraints: SessionConstraints = SessionConstraints(
+                escalation_budget=0,
+                sla_tracker=[],
+            )
 
     # ── OpenEnv Interface ─────────────────────────────────────────────────────
 
     def reset(self) -> Observation:
         """Reset all state and return initial observation."""
-        self._emails         = [_build_email_message(e) for e in self._dataset]
-        self._processed_ids  = []
-        self._actions_log    = []
-        self._step_num       = 0
-        self._done           = False
-        self._cumulative_reward = 0.0
+        try:
+            self._emails = [_build_email_message(e) for e in self._dataset]
+            self._processed_ids = []
+            self._actions_log = []
+            self._step_num = 0
+            self._done = False
+            self._cumulative_reward = 0.0
 
-        budget = TASK_ESCALATION_BUDGET[self.task_id]
-        self._constraints = SessionConstraints(escalation_budget=budget)
+            budget = TASK_ESCALATION_BUDGET[self.task_id]
+            self._constraints = SessionConstraints(
+                escalation_budget=budget,
+                sla_tracker=[],
+            )
 
-        # Register every email in the SLA tracker immediately
-        for i, raw in enumerate(self._dataset):
-            gt_priority = raw["ground_truth"]["priority"]
-            deadline    = i + SLA_STEPS.get(gt_priority, 99)
-            self._constraints.sla_tracker.append(SlaStatus(
-                email_id        = raw["email"]["header"]["email_id"],
-                true_priority   = gt_priority,
-                arrived_at_step = i,     # emails are revealed sequentially
-                deadline_step   = deadline,
-            ))
+            # Register every email in the SLA tracker immediately
+            for i, raw in enumerate(self._dataset):
+                gt_priority = raw["ground_truth"]["priority"]
+                deadline = i + SLA_STEPS.get(gt_priority, 99)
 
-        return self._make_observation()
+                if self._constraints.sla_tracker is None:
+                    self._constraints.sla_tracker = []
+
+                self._constraints.sla_tracker.append(
+                    SlaStatus(
+                        email_id=raw["email"]["header"]["email_id"],
+                        true_priority=gt_priority,
+                        arrived_at_step=i,
+                        deadline_step=deadline,
+                    )
+                )
+
+            return self._make_observation()
+
+        except Exception as exc:
+            print(f"[DEBUG] reset() failed: {exc}", flush=True)
+            self._done = True
+            self._emails = []
+            self._processed_ids = []
+            self._actions_log = []
+            self._step_num = 0
+            self._cumulative_reward = 0.0
+            return self._make_observation()
+
 
     def step(self, action: Action) -> Tuple[Observation, Reward, bool, Dict[str, Any]]:
         """
