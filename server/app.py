@@ -6,6 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from fastapi import FastAPI
 from inference import run
 from pydantic import BaseModel
+from environment import EmailTriageEnv
 app = FastAPI()
 env=None
 
