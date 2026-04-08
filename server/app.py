@@ -5,8 +5,37 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from fastapi import FastAPI
 from inference import run
+from pydantic import BaseModel
 app = FastAPI()
+env=None
 
+class Action(BaseModel):
+    action:dict
+
+@app.post("/reset")
+def reset(task: str = "easy"):
+    global env
+    env = EmailTriageEnv(task=task)
+    obs = env.reset()
+    return obs
+
+
+@app.post("/step")
+def step(action: Action):
+    global env
+    obs, reward, done, info = env.step(action.action)
+    return {
+        "observation": obs,
+        "reward": reward,
+        "done": done,
+        "info": info,
+    }
+
+
+@app.get("/state")
+def state():
+    global env
+    return env.state()
 
 @app.get("/")
 def root():
